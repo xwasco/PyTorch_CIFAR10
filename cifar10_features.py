@@ -29,7 +29,7 @@ def main(hparams):
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('--classifier', type=str, default='inception_v3')
+    parser.add_argument('--classifier', type=str, default='googlenet')
     parser.add_argument('--data_dir', type=str, default='./data/cifar10/')
     parser.add_argument('--gpus', default='0,')
     parser.add_argument('--max_epochs', type=int, default=100)
@@ -37,6 +37,6 @@ if __name__ == '__main__':
     parser.add_argument('--learning_rate', type=float, default=1e-2)
     parser.add_argument('--weight_decay', type=float, default=1e-2)
     parser.add_argument('--download_cifar', type=bool, default=True)
-    parser.add_argument('--features_file', type=str, default='inception_v3_features.npz')
+    parser.add_argument('--features_file', type=str, default='googlenet_features.npz')
     args = parser.parse_args()
     main(args)

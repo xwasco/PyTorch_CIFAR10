@@ -23,7 +23,7 @@ def googlenet(pretrained=False, progress=True, device='cpu', **kwargs):
         transform_input (bool): If True, preprocesses the input according to the method with which it
             was trained on ImageNet. Default: *False*
     """
-    model = GoogLeNet()
+    model = GoogLeNet(**kwargs)
     if pretrained:
         script_dir = os.path.dirname(__file__)
         state_dict = torch.load(script_dir + '/state_dicts/googlenet.pt', map_location=device)
@@ -34,8 +34,9 @@ def googlenet(pretrained=False, progress=True, device='cpu', **kwargs):
 class GoogLeNet(nn.Module):
 
     ## CIFAR10: aux_logits True->False
-    def __init__(self, num_classes=10, aux_logits=False, transform_input=False):
+    def __init__(self, num_classes=10, aux_logits=False, transform_input=False, get_features=False):
         super(GoogLeNet, self).__init__()
+        self.get_features = get_features
         self.aux_logits = aux_logits
         self.transform_input = transform_input
         
@@ -144,14 +145,21 @@ class GoogLeNet(nn.Module):
 
         x = self.avgpool(x)
         # N x 1024 x 1 x 1
-        x = x.view(x.size(0), -1)
+        feat = x.view(x.size(0), -1)
         # N x 1024
-        x = self.dropout(x)
+        x = self.dropout(feat)
         x = self.fc(x)
         # N x 1000 (num_classes)
         if self.training and self.aux_logits:
-            return _GoogLeNetOuputs(x, aux2, aux1)
-        return x
+            if self.get_features:
+                return _GoogLeNetOuputs(x, aux2, aux1), feat
+            else:
+                return _GoogLeNetOuputs(x, aux2, aux1)
+
+        if self.get_features:
+            return x, feat
+        else:
+            return x
 
 
 class Inception(nn.Module):

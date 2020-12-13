@@ -30,7 +30,7 @@ def get_classifier(classifier, pretrained, get_features=False):
     elif classifier == 'mobilenet_v2':
         return mobilenet_v2(pretrained=pretrained, get_features=get_features)
     elif classifier == 'googlenet':
-        return googlenet(pretrained=pretrained)
+        return googlenet(pretrained=pretrained, get_features=get_features)
     elif classifier == 'inception_v3':
         return inception_v3(pretrained=pretrained, get_features=get_features)
     else:
