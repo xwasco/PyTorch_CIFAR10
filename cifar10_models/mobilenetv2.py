@@ -107,8 +107,8 @@ class MobileNetV2(nn.Module):
 
     def forward(self, x):
         feat = self.features(x)
-        x = feat.mean([2, 3])
-        x = self.classifier(x)
+        feat = feat.mean([2, 3])
+        x = self.classifier(feat)
         if self.get_features:
             return x, feat
         else:

@@ -4,6 +4,7 @@ import torchvision.transforms as transforms
 from torchvision.datasets import CIFAR10
 from torch.utils.data import DataLoader
 from cifar10_models import *
+import numpy as np
 
 def get_classifier(classifier, pretrained, get_features=False):
     if classifier == 'vgg11_bn':
@@ -76,6 +77,7 @@ class CIFAR10_Module(pl.LightningModule):
     def validation_step(self, batch, batch_nb):
         if self.get_features:
             avg_loss, accuracy, features = self.forward(batch)
+            features = features.cpu().numpy()
         else:
             avg_loss, accuracy = self.forward(batch)
 
@@ -92,7 +94,7 @@ class CIFAR10_Module(pl.LightningModule):
     def validation_epoch_end(self, outputs):
         if self.get_features:
             loss = torch.stack([x['loss/val'] for x in outputs]).sum() / self.val_size
-            features = torch.cat([x['features'] for x in outputs], dim=0)
+            features = np.concatenate([x['features'] for x in outputs], axis=0)
             accuracy = torch.stack([x['corrects'] for x in outputs]).sum() / self.val_size
             logs = {'loss/val': loss, 'accuracy/val': accuracy}
             return {'val_loss': loss, 'log': logs, 'features': features}
