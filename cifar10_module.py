@@ -111,6 +111,7 @@ class CIFAR10_Module(pl.LightningModule):
         outs = self.validation_epoch_end(outputs)
         if self.get_features:
             features = outs['features']
+
         accuracy = outs['log']['accuracy/val']
         accuracy = round((100 * accuracy).item(), 2)
         if self.get_features:
