@@ -63,11 +63,6 @@ Output
 ## How to extract cifar10 features from a pre-trained models
 `python cifar10_features.py --features_file features.npz --classifier resnet18 --gpu '0,'`
 
-Output
-
-`TEST RESULTS
-{'Accuracy': 93.33}`
-
 ## Check the TensorBoard logs
 To see the training progress, cd to the `tensorboard_logs` and run TensorBoard there
 
