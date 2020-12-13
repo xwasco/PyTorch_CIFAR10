@@ -144,3 +144,17 @@ class CIFAR10_Module(pl.LightningModule):
     
     def test_dataloader(self):
         return self.val_dataloader()
+
+    def features_dataloader(self, train=True):
+        transform_train = transforms.Compose([transforms.ToTensor(),
+                                              transforms.Normalize(self.mean, self.std)])
+
+        dataset = CIFAR10(root=self.hparams.data_dir, train=train, transform=transform_train,
+                                download=self.download_cifar)
+
+        dataloader = DataLoader(dataset, batch_size=self.hparams.batch_size, num_workers=4, shuffle=False,
+                            drop_last=False, pin_memory=True)
+
+        return dataloader
+
+

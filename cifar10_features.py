@@ -14,11 +14,19 @@ def main(hparams):
 
     model = CIFAR10_Module(hparams, pretrained=True, get_features=True)
     trainer = Trainer(gpus=hparams.gpus, default_save_path=os.path.join(os.getcwd(), 'test_temp'))
-    trainer.test(model)
-    features = trainer.callback_metrics['features'].cpu().data.numpy()
-    np.savez(hparams.features_file, features=features)
-
+    trainer.test(model, test_dataloaders=model.features_dataloader(train=True))
+    features_train = trainer.callback_metrics['features'].cpu().data.numpy()
+    print('Extracted ', features_train.shape[0], ' x ', features_train.shape[1], ' features\n')
     shutil.rmtree(os.path.join(os.getcwd(), 'test_temp'))
+
+    trainer = Trainer(gpus=hparams.gpus, default_save_path=os.path.join(os.getcwd(), 'test_temp'))
+    trainer.test(model, test_dataloaders=model.features_dataloader(train=False))
+    features_val = trainer.callback_metrics['features'].cpu().data.numpy()
+    print('Extracted ', features_val.shape[0], ' x ', features_val.shape[1], ' features\n')
+    shutil.rmtree(os.path.join(os.getcwd(), 'test_temp'))
+
+    np.savez(hparams.features_file, features_train=features_train, features_val=features_val)
+
 
 
 if __name__ == '__main__':
