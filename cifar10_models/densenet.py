@@ -64,9 +64,11 @@ class DenseNet(nn.Module):
     """
 
     def __init__(self, growth_rate=32, block_config=(6, 12, 24, 16),
-                 num_init_features=64, bn_size=4, drop_rate=0, num_classes=10):
+                 num_init_features=64, bn_size=4, drop_rate=0, num_classes=10, get_features=False):
 
         super(DenseNet, self).__init__()
+
+        self.get_features = get_features
 
         # First convolution
         
@@ -112,10 +114,14 @@ class DenseNet(nn.Module):
 
     def forward(self, x):
         features = self.features(x)
-        out = F.relu(features, inplace=True)
-        out = F.adaptive_avg_pool2d(out, (1, 1)).view(features.size(0), -1)
-        out = self.classifier(out)
-        return out
+        f2 = F.relu(features, inplace=True)
+        f2 = F.adaptive_avg_pool2d(f2, (1, 1)).view(features.size(0), -1)
+        out = self.classifier(f2)
+
+        if self.get_features:
+            return out, f2
+        else:
+            return out
 
 def _densenet(arch, growth_rate, block_config, num_init_features, pretrained, progress, device, **kwargs):
     model = DenseNet(growth_rate, block_config, num_init_features, **kwargs)

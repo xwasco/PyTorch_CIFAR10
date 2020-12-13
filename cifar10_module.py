@@ -22,11 +22,11 @@ def get_classifier(classifier, pretrained, get_features=False):
     elif classifier == 'resnet50':
         return resnet50(pretrained=pretrained, get_features=get_features)
     elif classifier == 'densenet121':
-        return densenet121(pretrained=pretrained)
+        return densenet121(pretrained=pretrained, get_features=get_features)
     elif classifier == 'densenet161':
-        return densenet161(pretrained=pretrained)
+        return densenet161(pretrained=pretrained, get_features=get_features)
     elif classifier == 'densenet169':
-        return densenet169(pretrained=pretrained)
+        return densenet169(pretrained=pretrained, get_features=get_features)
     elif classifier == 'mobilenet_v2':
         return mobilenet_v2(pretrained=pretrained, get_features=get_features)
     elif classifier == 'googlenet':

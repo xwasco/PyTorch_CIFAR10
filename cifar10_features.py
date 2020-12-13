@@ -29,7 +29,7 @@ def main(hparams):
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('--classifier', type=str, default='mobilenet_v2')
+    parser.add_argument('--classifier', type=str, default='densenet121')
     parser.add_argument('--data_dir', type=str, default='./data/cifar10/')
     parser.add_argument('--gpus', default='0,')
     parser.add_argument('--max_epochs', type=int, default=100)
