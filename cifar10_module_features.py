@@ -5,7 +5,7 @@ from torchvision.datasets import CIFAR10
 from torch.utils.data import DataLoader
 from cifar10_models import *
 
-def get_classifier(classifier, pretrained, get_features=False):
+def get_classifier(classifier, pretrained, get_features=True):
     if classifier == 'vgg11_bn':
         return vgg11_bn(pretrained=pretrained)
     elif classifier == 'vgg13_bn':
@@ -15,11 +15,11 @@ def get_classifier(classifier, pretrained, get_features=False):
     elif classifier == 'vgg19_bn':
         return vgg19_bn(pretrained=pretrained)
     elif classifier == 'resnet18':
-        return resnet18(pretrained=pretrained, get_features=get_features)
+        return resnet18(pretrained=pretrained)
     elif classifier == 'resnet34':
-        return resnet34(pretrained=pretrained, get_features=get_features)
+        return resnet34(pretrained=pretrained)
     elif classifier == 'resnet50':
-        return resnet50(pretrained=pretrained, get_features=get_features)
+        return resnet50(pretrained=pretrained)
     elif classifier == 'densenet121':
         return densenet121(pretrained=pretrained)
     elif classifier == 'densenet161':
@@ -35,86 +35,50 @@ def get_classifier(classifier, pretrained, get_features=False):
     else:
         raise NameError('Please enter a valid classifier')
         
-class CIFAR10_Module(pl.LightningModule):
-    def __init__(self, hparams, pretrained=False, get_features=False):
+class CIFAR10_Module_Features(pl.LightningModule):
+    def __init__(self, hparams, pretrained=False):
         super().__init__()
         self.hparams = hparams
         self.criterion = torch.nn.CrossEntropyLoss()
         self.mean = [0.4914, 0.4822, 0.4465]
         self.std = [0.2023, 0.1994, 0.2010]
         self.download_cifar = hparams.download_cifar
-        self.model = get_classifier(hparams.classifier, pretrained, get_features=get_features)
-        self.get_features = get_features
+        self.model = get_classifier(hparams.classifier, pretrained, get_features=True)
         self.train_size = len(self.train_dataloader().dataset)
         self.val_size = len(self.val_dataloader().dataset)
         
     def forward(self, batch):
         images, labels = batch
-        if self.get_features:
-            predictions, features = self.model(images)
-        else:
-            predictions = self.model(images)
-
+        predictions, features = self.model(images)
         loss = self.criterion(predictions, labels)
         accuracy = torch.sum(torch.max(predictions, 1)[1] == labels.data).float() / batch[0].size(0)
-
-        if self.get_features:
-            return loss, accuracy, features
-        else:
-            return loss, accuracy
-
+        return loss, accuracy, features
+    
     def training_step(self, batch, batch_nb):
-        if self.get_features:
-            loss, accuracy, features = self.forward(batch)
-            logs = {'loss/train': loss, 'accuracy/train': accuracy}
-            return {'loss': loss, 'log': logs, 'features': features}
-        else:
-            loss, accuracy = self.forward(batch)
-            logs = {'loss/train': loss, 'accuracy/train': accuracy}
-            return {'loss': loss, 'log': logs}
-
+        loss, accuracy, features = self.forward(batch)
+        logs = {'loss/train': loss, 'accuracy/train': accuracy}
+        return {'loss': loss, 'log': logs}
+        
     def validation_step(self, batch, batch_nb):
-        if self.get_features:
-            avg_loss, accuracy, features = self.forward(batch)
-        else:
-            avg_loss, accuracy = self.forward(batch)
-
+        avg_loss, accuracy, features = self.forward(batch)
         loss = avg_loss * batch[0].size(0)
         corrects = accuracy * batch[0].size(0)
-
-        if self.get_features:
-            logs = {'loss/val': loss, 'corrects': corrects, 'features': features}
-        else:
-            logs = {'loss/val': loss, 'corrects': corrects}
-
-        return logs
-
+        logs = {'loss/val': loss, 'corrects': corrects}
+        return logs, features
+                
     def validation_epoch_end(self, outputs):
-        if self.get_features:
-            loss = torch.stack([x['loss/val'] for x in outputs]).sum() / self.val_size
-            features = torch.cat([x['features'] for x in outputs], dim=0)
-            accuracy = torch.stack([x['corrects'] for x in outputs]).sum() / self.val_size
-            logs = {'loss/val': loss, 'accuracy/val': accuracy}
-            return {'val_loss': loss, 'log': logs, 'features': features}
-        else:
-            loss = torch.stack([x['loss/val'] for x in outputs]).sum() / self.val_size
-            accuracy = torch.stack([x['corrects'] for x in outputs]).sum() / self.val_size
-            logs = {'loss/val': loss, 'accuracy/val': accuracy}
-            return {'val_loss': loss, 'log': logs}
+        loss = torch.stack([x['loss/val'] for x in outputs]).sum() / self.val_size
+        accuracy = torch.stack([x['corrects'] for x in outputs]).sum() / self.val_size
+        logs = {'loss/val': loss, 'accuracy/val': accuracy}
+        return {'val_loss': loss, 'log': logs}
     
     def test_step(self, batch, batch_nb):
         return self.validation_step(batch, batch_nb)
     
     def test_epoch_end(self, outputs):
-        outs = self.validation_epoch_end(outputs)
-        if self.get_features:
-            features = outs['features']
-        accuracy = outs['log']['accuracy/val']
+        accuracy = self.validation_epoch_end(outputs)['log']['accuracy/val']
         accuracy = round((100 * accuracy).item(), 2)
-        if self.get_features:
-            return {'progress_bar': {'Accuracy': accuracy}, 'features': features}
-        else:
-            return {'progress_bar': {'Accuracy': accuracy}}
+        return {'progress_bar': {'Accuracy': accuracy}}
         
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.parameters(), lr=self.hparams.learning_rate,
@@ -144,3 +108,7 @@ class CIFAR10_Module(pl.LightningModule):
     
     def test_dataloader(self):
         return self.val_dataloader()
+
+    def get_features(self, data_loader):
+        return self.val_dataloader()
+

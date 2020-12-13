@@ -103,11 +103,13 @@ class ResNet(nn.Module):
 
     def __init__(self, block, layers, num_classes=10, zero_init_residual=False,
                  groups=1, width_per_group=64, replace_stride_with_dilation=None,
-                 norm_layer=None):
+                 norm_layer=None, get_features=False):
         super(ResNet, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
+
+        self.get_features = get_features
 
         self.inplanes = 64
         self.dilation = 1
@@ -191,10 +193,14 @@ class ResNet(nn.Module):
         x = self.layer4(x)
 
         x = self.avgpool(x)
-        x = x.reshape(x.size(0), -1)
-        x = self.fc(x)
+        feat = x.reshape(x.size(0), -1)
 
-        return x
+        x = self.fc(feat)
+
+        if self.get_features:
+            return x, feat
+        else:
+            return x
 
 
 def _resnet(arch, block, layers, pretrained, progress, device, **kwargs):

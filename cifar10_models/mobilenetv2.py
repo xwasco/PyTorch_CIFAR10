@@ -45,12 +45,14 @@ class InvertedResidual(nn.Module):
 
 
 class MobileNetV2(nn.Module):
-    def __init__(self, num_classes=10, width_mult=1.0):
+    def __init__(self, num_classes=10, width_mult=1.0, get_features=False):
         super(MobileNetV2, self).__init__()
         block = InvertedResidual
         input_channel = 32
         last_channel = 1280
-        
+
+        self.get_features = get_features
+
         ## CIFAR10
         inverted_residual_setting = [
             # t, c, n, s
@@ -104,11 +106,13 @@ class MobileNetV2(nn.Module):
                 nn.init.zeros_(m.bias)
 
     def forward(self, x):
-        x = self.features(x)
-        x = x.mean([2, 3])
+        feat = self.features(x)
+        x = feat.mean([2, 3])
         x = self.classifier(x)
-        return x
-
+        if self.get_features:
+            return x, feat
+        else:
+            return x
 
 def mobilenet_v2(pretrained=False, progress=True, device='cpu', **kwargs):
     """
