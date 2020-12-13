@@ -8,13 +8,13 @@ import numpy as np
 
 def get_classifier(classifier, pretrained, get_features=False):
     if classifier == 'vgg11_bn':
-        return vgg11_bn(pretrained=pretrained)
+        return vgg11_bn(pretrained=pretrained, get_features=get_features)
     elif classifier == 'vgg13_bn':
-        return vgg13_bn(pretrained=pretrained)
+        return vgg13_bn(pretrained=pretrained, get_features=get_features)
     elif classifier == 'vgg16_bn':
-        return vgg16_bn(pretrained=pretrained)
+        return vgg16_bn(pretrained=pretrained, get_features=get_features)
     elif classifier == 'vgg19_bn':
-        return vgg19_bn(pretrained=pretrained)
+        return vgg19_bn(pretrained=pretrained, get_features=get_features)
     elif classifier == 'resnet18':
         return resnet18(pretrained=pretrained, get_features=get_features)
     elif classifier == 'resnet34':
@@ -32,7 +32,7 @@ def get_classifier(classifier, pretrained, get_features=False):
     elif classifier == 'googlenet':
         return googlenet(pretrained=pretrained)
     elif classifier == 'inception_v3':
-        return inception_v3(pretrained=pretrained)
+        return inception_v3(pretrained=pretrained, get_features=get_features)
     else:
         raise NameError('Please enter a valid classifier')
         

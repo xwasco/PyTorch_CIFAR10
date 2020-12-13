@@ -26,7 +26,7 @@ def inception_v3(pretrained=False, progress=True, device='cpu', **kwargs):
         transform_input (bool): If True, preprocesses the input according to the method with which it
             was trained on ImageNet. Default: *False*
     """
-    model = Inception3()
+    model = Inception3(**kwargs)
     if pretrained:
         script_dir = os.path.dirname(__file__)
         state_dict = torch.load(script_dir + '/state_dicts/inception_v3.pt', map_location=device)
@@ -35,8 +35,9 @@ def inception_v3(pretrained=False, progress=True, device='cpu', **kwargs):
 
 class Inception3(nn.Module):
     ## CIFAR10: aux_logits True->False
-    def __init__(self, num_classes=10, aux_logits=False, transform_input=False):
+    def __init__(self, num_classes=10, aux_logits=False, transform_input=False, get_features=False):
         super(Inception3, self).__init__()
+        self.get_features = get_features
         self.aux_logits = aux_logits
         self.transform_input = transform_input
         
@@ -127,13 +128,17 @@ class Inception3(nn.Module):
         # N x 2048 x 1 x 1
         x = F.dropout(x, training=self.training)
         # N x 2048 x 1 x 1
-        x = x.view(x.size(0), -1)
+        feat = x.view(x.size(0), -1)
         # N x 2048
-        x = self.fc(x)
+        x = self.fc(feat)
         # N x 1000 (num_classes)
         if self.training and self.aux_logits:
             return _InceptionOuputs(x, aux)
-        return x
+
+        if self.get_features:
+            return x, feat
+        else:
+            return x
 
 
 class InceptionA(nn.Module):
