@@ -21,6 +21,11 @@
 | 12  | googlenet    |   92.73%  |    5.491 M |  21 MB |
 | 13  | inception_v3 |   93.76%  |   21.640 M |  83 MB |
 
+## Create a conda environment
+```python
+conda env create -f environment.yml
+```
+
 ## How to use pretrained models
 
 **Automatically download and extract the weights from Box (2.39 GB)**
